@@ -2,11 +2,13 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Open Chat | Professional AI Conversations</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#5c6bc0" />
+  <meta name="description" content="Open Chat - Professional AI Conversations" />
+  <title>Open Chat | Professional AI Assistant</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
 
-  <!-- ⚡ Preload critical resources -->
+  <!-- Preload critical resources -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://cdn.tailwindcss.com" />
@@ -39,10 +41,10 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="style.css?v=6001">
+  <link rel="stylesheet" href="style.css?v=7001">
 
   <!-- Toast Notification System -->
-  <script src="toast.js?v=6001"></script>
+  <script src="toast.js?v=7001"></script>
 
   <script>
     tailwind.config = {
@@ -51,9 +53,9 @@
         extend: {
           colors: {
             primary: {
-              50: '#f0f0ff', 100: '#e0e1ff', 200: '#c4c5ff', 300: '#a8abff',
-              400: '#8b8ff5', 500: '#5b5fc7', 600: '#4a4eb3', 700: '#3c3f94',
-              800: '#2e3075', 900: '#222459',
+              50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+              400: '#818cf8', 500: '#5c6bc0', 600: '#4f46e5', 700: '#4338ca',
+              800: '#3730a3', 900: '#312e81',
             },
           }
         }
@@ -64,7 +66,7 @@
 
 <!-- Theme toggle component -->
 <theme-toggle></theme-toggle>
-<script src="components/theme-toggle.js?v=6001"></script>
+<script src="components/theme-toggle.js?v=7001"></script>
 
 <body class="selection:bg-primary-500/20">
 
@@ -72,26 +74,26 @@
     <div id="chat-container" class="flex-1 overflow-hidden flex min-h-0 min-w-0">
 
       <!-- Sidebar overlay (mobile) -->
-      <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-10 md:hidden"></div>
+      <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-10 md:hidden transition-opacity"></div>
 
-      <!-- ═══════════════ Sidebar ═══════════════ -->
+      <!-- Sidebar -->
       <aside id="sidebar"
-        class="w-80 glass-sidebar flex flex-col z-20 transition-all duration-300
+        class="w-72 glass-sidebar flex flex-col z-20 transition-all duration-300
                md:relative fixed top-0 left-0 h-full md:h-auto md:translate-x-0 -translate-x-full md:flex">
 
         <div class="p-5">
           <!-- Logo -->
-          <div class="flex items-center justify-between gap-3 mb-7">
+          <div class="flex items-center justify-between gap-3 mb-6">
             <div class="flex items-center gap-3">
               <div class="relative group">
-                <div class="absolute -inset-1 bg-gradient-to-r from-primary-500 to-amber-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
+                <div class="absolute -inset-1 bg-gradient-to-r from-primary-500 to-primary-400 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
                 <div class="relative p-2.5 rounded-xl border border-[var(--border)]" style="background:var(--surface)">
                   <i data-lucide="sparkles" class="w-5 h-5" style="color:var(--primary)"></i>
                 </div>
               </div>
               <span class="text-sm font-semibold tracking-tight" style="color:var(--text)">Open Chat</span>
             </div>
-            <button id="sidebar-close" class="md:hidden p-2 rounded-lg hover:bg-gray-200/60 dark:hover:bg-slate-700/50" type="button" aria-label="Close menu">
+            <button id="sidebar-close" class="md:hidden p-2 rounded-lg hover:bg-gray-200/60 dark:hover:bg-slate-700/50 transition-colors" type="button" aria-label="Close menu">
               <i data-lucide="x" class="w-5 h-5"></i>
             </button>
           </div>
@@ -100,34 +102,34 @@
           <div class="mb-5">
             <div class="flex items-center justify-between mb-2">
               <div class="text-[10px] font-bold uppercase tracking-widest" style="color:var(--text-3)">Projects</div>
-              <button id="new-project-btn" type="button" class="text-xs font-semibold hover:underline" style="color:var(--primary)">New</button>
+              <button id="new-project-btn" type="button" class="text-xs font-semibold hover:underline transition-colors" style="color:var(--primary)">New</button>
             </div>
 
             <div id="global-chat-item"
               class="mb-2 p-2.5 rounded-xl cursor-pointer text-sm hover:bg-primary-500/8 border border-transparent hover:border-primary-500/15 flex items-center gap-2.5 transition-all duration-200"
               style="color:var(--text-2)">
               <i data-lucide="message-square" class="w-4 h-4" style="color:var(--text-3)"></i>
-              <span class="truncate font-medium">NEW CHAT</span>
+              <span class="truncate font-medium">General Chat</span>
             </div>
 
             <div id="project-list" class="space-y-0.5"></div>
 
             <div id="project-form" class="hidden mt-3 space-y-2">
-              <input id="project-name-input" type="text" placeholder="Project name"
-                class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
+              <input id="project-name-input" type="text" placeholder="Project name" maxlength="100"
+                class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30 transition-all"
                 style="border-color:var(--border);background:var(--surface);color:var(--text)">
-              <textarea id="project-description-input" placeholder="Project description"
-                class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
+              <textarea id="project-description-input" placeholder="Project description (optional)"
+                class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30 transition-all"
                 style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="2"></textarea>
-              <textarea id="project-instructions-input" placeholder="Project instructions"
-                class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
+              <textarea id="project-instructions-input" placeholder="System instructions (optional)"
+                class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30 transition-all"
                 style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="3"></textarea>
               <div class="flex items-center gap-2">
                 <button id="project-save-btn" type="button"
-                  class="flex-1 text-white rounded-xl py-2 text-sm font-medium"
+                  class="flex-1 text-white rounded-xl py-2 text-sm font-medium transition-all hover:opacity-90"
                   style="background:var(--primary)">Create</button>
                 <button id="project-cancel-btn" type="button"
-                  class="flex-1 border rounded-xl py-2 text-sm" style="border-color:var(--border);color:var(--text-2)">Cancel</button>
+                  class="flex-1 border rounded-xl py-2 text-sm transition-all hover:bg-gray-100 dark:hover:bg-slate-800" style="border-color:var(--border);color:var(--text-2)">Cancel</button>
               </div>
             </div>
           </div>
@@ -155,7 +157,7 @@
         <div id="sidebar-theme" class="p-4 border-t" style="border-color:var(--border)"></div>
       </aside>
 
-      <!-- ═══════════════ Chat Area ═══════════════ -->
+      <!-- Chat Area -->
       <div class="flex-1 flex flex-col relative h-full min-h-0 min-w-0">
 
         <!-- Topbar -->
@@ -163,7 +165,7 @@
           class="h-14 flex items-center justify-between px-3 md:px-6 shrink-0">
           <div class="flex items-center gap-3 min-w-0 flex-1">
             <button id="sidebar-open"
-              class="md:hidden p-2 rounded-lg hover:bg-gray-200/60 dark:hover:bg-slate-700/50 shrink-0"
+              class="md:hidden p-2 rounded-lg hover:bg-gray-200/60 dark:hover:bg-slate-700/50 shrink-0 transition-colors"
               type="button" aria-label="Open menu">
               <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
@@ -176,23 +178,23 @@
           <!-- Right controls -->
           <div class="flex items-center gap-2 md:gap-3 flex-nowrap overflow-x-auto no-scrollbar max-w-[70vw] md:max-w-none">
             <button id="project-settings-btn" type="button"
-              class="px-3 py-1.5 rounded-lg border text-xs whitespace-nowrap hidden md:inline-flex shrink-0 font-medium transition-all hover:border-primary-500/40"
+              class="px-3 py-1.5 rounded-lg border text-xs whitespace-nowrap hidden md:inline-flex shrink-0 font-medium transition-all hover:border-primary-500/40 hover:bg-primary-500/5"
               style="border-color:var(--border);color:var(--text-2)">
               Project settings
             </button>
 
-            <!-- ✅ Model selector with proper dark mode -->
+            <!-- Model selector -->
             <div class="select-pill shrink-0">
               <i data-lucide="cpu" class="w-3.5 h-3.5" style="color:var(--text-3)"></i>
-              <select id="model-select">
+              <select id="model-select" aria-label="Select AI model">
                 <option value="">Loading models...</option>
               </select>
             </div>
 
-            <!-- ✅ Thinking level with proper dark mode -->
+            <!-- Thinking level -->
             <div class="select-pill shrink-0">
               <i data-lucide="brain" class="w-3.5 h-3.5" style="color:var(--text-3)"></i>
-              <select id="thinking-level">
+              <select id="thinking-level" aria-label="Select thinking depth">
                 <option value="0">Standard</option>
                 <option value="1">Deep thinking</option>
                 <option value="2">Extra deep</option>
@@ -206,18 +208,18 @@
           class="px-3 md:px-6 py-1.5 flex items-center gap-4 text-xs">
           <div class="flex items-center gap-2 min-w-0">
             <i data-lucide="user" class="w-3.5 h-3.5" style="color:var(--text-3)"></i>
-            <span id="user-badge" class="font-medium truncate" style="color:var(--text-2)">...</span>
+            <span id="user-badge" class="font-medium truncate" style="color:var(--text-2)">Loading...</span>
             <a id="admin-link" href="admin.html"
-              class="hidden whitespace-nowrap font-semibold" style="color:var(--primary)">Admin panel</a>
+              class="hidden whitespace-nowrap font-semibold transition-colors hover:underline" style="color:var(--primary)">Admin panel</a>
           </div>
           <div class="flex-1 min-w-0">
             <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--surface-3)">
-              <div id="quota-fill" class="h-1.5 w-0"></div>
+              <div id="quota-fill" class="h-1.5 w-0 transition-all duration-500"></div>
             </div>
-            <div id="quota-text" class="mt-1 text-[11px] leading-4 whitespace-normal" style="color:var(--text-3)">...</div>
+            <div id="quota-text" class="mt-1 text-[11px] leading-4 whitespace-normal" style="color:var(--text-3)">Loading quota...</div>
           </div>
           <button id="logout-btn" type="button"
-            class="px-3 py-1.5 rounded-lg border text-xs whitespace-nowrap font-medium transition-all hover:border-primary-500/40"
+            class="px-3 py-1.5 rounded-lg border text-xs whitespace-nowrap font-medium transition-all hover:border-primary-500/40 hover:bg-primary-500/5"
             style="border-color:var(--border);color:var(--text-2)">
             Sign out
           </button>
@@ -228,7 +230,7 @@
           <div id="empty-state" data-empty-state="1"
             class="flex flex-col items-center justify-center h-full select-none">
             <div class="relative mb-6">
-              <div class="absolute -inset-4 rounded-full blur-2xl opacity-20" style="background:var(--primary)"></div>
+              <div class="absolute -inset-4 rounded-full blur-2xl opacity-15" style="background:var(--primary)"></div>
               <div class="relative p-6 rounded-full border" style="background:var(--surface);border-color:var(--border)">
                 <i data-lucide="sparkles" class="w-10 h-10" style="color:var(--primary)"></i>
               </div>
@@ -252,8 +254,8 @@
                 <i data-lucide="paperclip" class="w-4 h-4 shrink-0" style="color:var(--primary)"></i>
                 <div id="file-chips" class="flex flex-wrap gap-2 min-w-0 flex-1"></div>
                 <button type="button" id="clear-files"
-                  class="shrink-0 p-1.5 hover:bg-red-500/10 rounded-full transition" style="color:var(--text-3)"
-                  title="Clear attachments" aria-label="Clear attachments">
+                  class="shrink-0 p-1.5 hover:bg-red-500/10 rounded-full transition-colors" style="color:var(--text-3)"
+                  title="Clear all attachments" aria-label="Clear attachments">
                   <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
               </div>
@@ -262,14 +264,14 @@
             <!-- Quote preview -->
             <div id="quote-preview"
               class="hidden mb-2 px-3 py-2 rounded-xl border text-xs"
-              style="border-color:rgba(99,102,241,0.2);background:rgba(99,102,241,0.05)">
+              style="border-color:rgba(92,107,192,0.15);background:rgba(92,107,192,0.04)">
               <div class="flex items-start gap-2">
                 <div class="flex-1 min-w-0">
                   <div class="text-[10px] uppercase tracking-wide font-bold" style="color:var(--primary)">Asking about</div>
                   <div id="quote-text" class="mt-1 line-clamp-3" style="color:var(--text)"></div>
                 </div>
                 <button id="quote-clear" type="button"
-                  class="shrink-0 p-1 rounded-full hover:bg-primary-500/10" style="color:var(--text-3)" aria-label="Clear selected text">
+                  class="shrink-0 p-1 rounded-full hover:bg-primary-500/10 transition-colors" style="color:var(--text-3)" aria-label="Clear selected text">
                   <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
               </div>
@@ -277,10 +279,10 @@
 
             <!-- Input composer -->
             <div id="composer" class="flex items-end gap-2">
-              <input type="file" id="file-in" class="hidden" multiple>
+              <input type="file" id="file-in" class="hidden" multiple accept="image/*,text/*,.pdf,.json,.md,.csv">
               <button id="attach-btn" onclick="document.getElementById('file-in').click()"
-                class="p-2 rounded-xl transition hover:bg-primary-500/10"
-                style="color:var(--text-3)" type="button">
+                class="p-2 rounded-xl transition-colors hover:bg-primary-500/10"
+                style="color:var(--text-3)" type="button" aria-label="Attach files">
                 <i data-lucide="paperclip" class="w-4 h-4"></i>
               </button>
 
@@ -288,15 +290,16 @@
                 class="flex-1 bg-transparent p-2 outline-none resize-none max-h-40 text-sm placeholder-slate-400 dark:placeholder-slate-500"
                 placeholder="Type your message..."
                 style="color:var(--text)"
-                oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"></textarea>
+                oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"
+                aria-label="Message input"></textarea>
 
               <button id="send-btn" onclick="send()"
-                class="flex items-center justify-center group" type="button">
+                class="flex items-center justify-center group" type="button" aria-label="Send message">
                 <i data-lucide="arrow-up" class="w-4 h-4 group-hover:-translate-y-0.5 transition-transform"></i>
               </button>
             </div>
 
-            <p class="text-[10px] text-center mt-2 font-medium uppercase tracking-widest hidden lg:block" style="color:var(--text-3);opacity:0.5">
+            <p class="text-[10px] text-center mt-2 font-medium uppercase tracking-widest hidden lg:block" style="color:var(--text-3);opacity:0.4">
               Open Chat • Professional AI Assistant
             </p>
           </div>
@@ -308,39 +311,48 @@
 
   <!-- Project settings modal -->
   <div id="project-settings-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 backdrop-blur-sm z-30">
-    <div class="rounded-2xl p-6 w-full max-w-lg" style="background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-lg)">
+    <div class="rounded-2xl p-6 w-full max-w-lg mx-4" style="background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-xl)">
       <div class="flex items-center justify-between mb-4">
         <div class="text-sm font-semibold" style="color:var(--text)">Project settings</div>
-        <button id="project-settings-close" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800" type="button" aria-label="Close project settings">
+        <button id="project-settings-close" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors" type="button" aria-label="Close project settings">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
       <div class="space-y-3">
-        <input id="project-settings-name" type="text" placeholder="Project name"
-          class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
-          style="border-color:var(--border);background:var(--surface);color:var(--text)">
-        <textarea id="project-settings-description" placeholder="Project description"
-          class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
-          style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="2"></textarea>
-        <textarea id="project-settings-instructions" placeholder="Project instructions"
-          class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
-          style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="3"></textarea>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color:var(--text-2)">Project name</label>
+          <input id="project-settings-name" type="text" placeholder="Enter project name" maxlength="100"
+            class="w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500/30 transition-all"
+            style="border-color:var(--border);background:var(--surface);color:var(--text)">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color:var(--text-2)">Description</label>
+          <textarea id="project-settings-description" placeholder="Optional project description"
+            class="w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500/30 transition-all"
+            style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="2"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1" style="color:var(--text-2)">System instructions</label>
+          <textarea id="project-settings-instructions" placeholder="Optional instructions for the AI"
+            class="w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500/30 transition-all"
+            style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="3"></textarea>
+        </div>
       </div>
-      <div class="flex flex-wrap items-center justify-between gap-2 mt-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 mt-5">
         <button id="project-settings-delete" type="button"
-          class="px-4 py-2 rounded-xl border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-medium">
+          class="px-4 py-2 rounded-xl border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-medium transition-colors">
           Delete project
         </button>
         <div class="flex items-center gap-2">
           <button id="project-settings-cancel" type="button"
-            class="px-4 py-2 rounded-xl border text-sm" style="border-color:var(--border);color:var(--text-2)">Cancel</button>
+            class="px-4 py-2 rounded-xl border text-sm transition-colors hover:bg-gray-100 dark:hover:bg-slate-800" style="border-color:var(--border);color:var(--text-2)">Cancel</button>
           <button id="project-settings-save" type="button"
-            class="px-4 py-2 rounded-xl text-white text-sm font-medium" style="background:var(--primary)">Save</button>
+            class="px-4 py-2 rounded-xl text-white text-sm font-medium transition-all hover:opacity-90" style="background:var(--primary)">Save changes</button>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="main.js"></script>
+  <script src="main.js?v=7001"></script>
 </body>
 </html>
