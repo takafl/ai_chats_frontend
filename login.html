@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In | Open Chat</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(22, 32, 42, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .logo {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #5c7c6f, #7a9a8d);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 { font-size: 22px; font-weight: 600; color: #f0f4f8; text-align: center; margin-bottom: 6px; }
+    .subtitle { text-align: center; color: #718096; font-size: 14px; margin-bottom: 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 13px; font-weight: 500; color: #a0aec0; margin-bottom: 6px; }
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      font-size: 14px;
+      color: #f0f4f8;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .form-input::placeholder { color: #4a5568; }
+    .form-input:hover { border-color: rgba(255,255,255,0.12); }
+    .form-input:focus { border-color: #5c7c6f; box-shadow: 0 0 0 3px rgba(92, 124, 111, 0.15); }
+    .form-input.is-invalid { border-color: #e53e3e; background: rgba(229, 62, 62, 0.08); }
+    .form-error { display: none; margin-top: 6px; font-size: 12px; color: #fc8181; animation: shake 0.4s; }
+    .form-error.show { display: block; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+    #err {
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(229, 62, 62, 0.1);
+      border: 1px solid rgba(229, 62, 62, 0.2);
+      color: #fc8181;
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+    #err.hidden { display: none; }
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #5c7c6f, #7a9a8d);
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(92, 124, 111, 0.3); }
+    .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+    .footer { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .footer p { font-size: 12px; color: #4a5568; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <i data-lucide="message-circle" class="w-6 h-6 text-white"></i>
+    </div>
+    <h1>Welcome back</h1>
+    <p class="subtitle">Sign in to continue to Open Chat</p>
+
+    <div id="err" class="hidden"></div>
+
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input type="text" id="username" class="form-input" placeholder="Enter username" autocomplete="username">
+        <div id="username-error" class="form-error"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" class="form-input" placeholder="Enter password" autocomplete="current-password">
+        <div id="password-error" class="form-error"></div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submit">Sign in</button>
+    </form>
+
+    <div class="footer">
+      <p>Make sure the server is running before signing in</p>
+    </div>
+  </div>
+
+  <script src="login.js"></script>
+  <script>if(window.lucide)lucide.createIcons();</script>
+</body>
+</html>

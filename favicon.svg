@@ -1,0 +1,15 @@
+
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="chat-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#d946ef"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="32" fill="url(#chat-gradient)"/>
+  <path d="M36 40h56a16 16 0 0 1 16 16v20a16 16 0 0 1-16 16H64l-16 12v-12H36a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16z" fill="#fff" opacity="0.95"/>
+  <circle cx="52" cy="66" r="6" fill="#0ea5e9"/>
+  <circle cx="64" cy="66" r="6" fill="#0ea5e9"/>
+  <circle cx="76" cy="66" r="6" fill="#0ea5e9"/>
+</svg>

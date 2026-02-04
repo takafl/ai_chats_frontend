@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open Chat | Smart Conversations</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
+  <!-- ⚡ Preload critical resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Prism (code highlighting) -->
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script>
+    if (window.Prism && Prism.plugins && Prism.plugins.autoloader) {
+      Prism.plugins.autoloader.languages_path = "https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/";
+    }
+  </script>
+
+  <!-- Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- KaTeX (LaTeX) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="style.css?v=6000">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f0ff', 100: '#e0e1ff', 200: '#c4c5ff', 300: '#a8abff',
+              400: '#8b8ff5', 500: '#5b5fc7', 600: '#4a4eb3', 700: '#3c3f94',
+              800: '#2e3075', 900: '#222459',
+            },
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<!-- Theme toggle component -->
+<theme-toggle></theme-toggle>
+<script src="components/theme-toggle.js?v=6000"></script>
+
+<body class="selection:bg-primary-500/20">
+
+  <main class="flex flex-col min-h-0">
+    <div id="chat-container" class="flex-1 overflow-hidden flex min-h-0 min-w-0">
+
+      <!-- Sidebar overlay (mobile) -->
+      <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-10 md:hidden"></div>
+
+      <!-- ═══════════════ Sidebar ═══════════════ -->
+      <aside id="sidebar"
+        class="w-80 glass-sidebar flex flex-col z-20 transition-all duration-300
+               md:relative fixed top-0 left-0 h-full md:h-auto md:translate-x-0 -translate-x-full md:flex">
+
+        <div class="p-5">
+          <!-- Logo -->
+          <div class="flex items-center justify-between gap-3 mb-7">
+            <div class="flex items-center gap-3">
+              <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-primary-500 to-amber-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
+                <div class="relative p-2.5 rounded-xl border border-[var(--border)]" style="background:var(--surface)">
+                  <i data-lucide="sparkles" class="w-5 h-5" style="color:var(--primary)"></i>
+                </div>
+              </div>
+              <span class="text-sm font-semibold tracking-tight" style="color:var(--text)">Open Chat</span>
+            </div>
+            <button id="sidebar-close" class="md:hidden p-2 rounded-lg hover:bg-gray-200/60 dark:hover:bg-slate-700/50" type="button" aria-label="Close menu">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Projects section -->
+          <div class="mb-5">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-[10px] font-bold uppercase tracking-widest" style="color:var(--text-3)">Projects</div>
+              <button id="new-project-btn" type="button" class="text-xs font-semibold hover:underline" style="color:var(--primary)">New</button>
+            </div>
+
+            <div id="global-chat-item"
+              class="mb-2 p-2.5 rounded-xl cursor-pointer text-sm hover:bg-primary-500/8 border border-transparent hover:border-primary-500/15 flex items-center gap-2.5 transition-all duration-200"
+              style="color:var(--text-2)">
+              <i data-lucide="message-square" class="w-4 h-4" style="color:var(--text-3)"></i>
+              <span class="truncate font-medium">NEW CHAT</span>
+            </div>
+
+            <div id="project-list" class="space-y-0.5"></div>
+
+            <div id="project-form" class="hidden mt-3 space-y-2">
+              <input id="project-name-input" type="text" placeholder="Project name"
+                class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
+                style="border-color:var(--border);background:var(--surface);color:var(--text)">
+              <textarea id="project-description-input" placeholder="Project description"
+                class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
+                style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="2"></textarea>
+              <textarea id="project-instructions-input" placeholder="Project instructions"
+                class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
+                style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="3"></textarea>
+              <div class="flex items-center gap-2">
+                <button id="project-save-btn" type="button"
+                  class="flex-1 text-white rounded-xl py-2 text-sm font-medium"
+                  style="background:var(--primary)">Create</button>
+                <button id="project-cancel-btn" type="button"
+                  class="flex-1 border rounded-xl py-2 text-sm" style="border-color:var(--border);color:var(--text-2)">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- New conversation button -->
+          <button id="new-chat-btn" onclick="newChat()"
+            class="w-full text-white p-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span class="text-sm">New conversation</span>
+          </button>
+
+          <!-- Clear history -->
+          <button id="clear-history" type="button"
+            class="mt-2.5 w-full p-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 text-sm">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>Clear history</span>
+          </button>
+        </div>
+
+        <!-- Chat list -->
+        <div id="chat-list" class="flex-1 overflow-y-auto px-4 space-y-0.5 pb-4 no-scrollbar"></div>
+
+        <!-- Mobile theme slot -->
+        <div id="sidebar-theme" class="p-4 border-t" style="border-color:var(--border)"></div>
+      </aside>
+
+      <!-- ═══════════════ Chat Area ═══════════════ -->
+      <div class="flex-1 flex flex-col relative h-full min-h-0 min-w-0">
+
+        <!-- Topbar -->
+        <header id="topbar"
+          class="h-14 flex items-center justify-between px-3 md:px-6 shrink-0">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <button id="sidebar-open"
+              class="md:hidden p-2 rounded-lg hover:bg-gray-200/60 dark:hover:bg-slate-700/50 shrink-0"
+              type="button" aria-label="Open menu">
+              <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+            <div class="flex flex-col min-w-0">
+              <div id="current-project-name" class="text-[11px] truncate max-w-[55vw] md:max-w-md" style="color:var(--text-3)">No project selected</div>
+              <div id="current-chat-title" class="font-semibold text-sm truncate max-w-[55vw] md:max-w-md" style="color:var(--text)">New conversation</div>
+            </div>
+          </div>
+
+          <!-- Right controls -->
+          <div class="flex items-center gap-2 md:gap-3 flex-nowrap overflow-x-auto no-scrollbar max-w-[70vw] md:max-w-none">
+            <button id="project-settings-btn" type="button"
+              class="px-3 py-1.5 rounded-lg border text-xs whitespace-nowrap hidden md:inline-flex shrink-0 font-medium transition-all hover:border-primary-500/40"
+              style="border-color:var(--border);color:var(--text-2)">
+              Project settings
+            </button>
+
+            <!-- ✅ Model selector with proper dark mode -->
+            <div class="select-pill shrink-0">
+              <i data-lucide="cpu" class="w-3.5 h-3.5" style="color:var(--text-3)"></i>
+              <select id="model-select">
+                <option value="">Loading models...</option>
+              </select>
+            </div>
+
+            <!-- ✅ Thinking level with proper dark mode -->
+            <div class="select-pill shrink-0">
+              <i data-lucide="brain" class="w-3.5 h-3.5" style="color:var(--text-3)"></i>
+              <select id="thinking-level">
+                <option value="0">Standard</option>
+                <option value="1">Deep thinking</option>
+                <option value="2">Extra deep</option>
+              </select>
+            </div>
+          </div>
+        </header>
+
+        <!-- Quota panel -->
+        <div id="quota-panel"
+          class="px-3 md:px-6 py-1.5 flex items-center gap-4 text-xs">
+          <div class="flex items-center gap-2 min-w-0">
+            <i data-lucide="user" class="w-3.5 h-3.5" style="color:var(--text-3)"></i>
+            <span id="user-badge" class="font-medium truncate" style="color:var(--text-2)">...</span>
+            <a id="admin-link" href="admin.html"
+              class="hidden whitespace-nowrap font-semibold" style="color:var(--primary)">Admin panel</a>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--surface-3)">
+              <div id="quota-fill" class="h-1.5 w-0"></div>
+            </div>
+            <div id="quota-text" class="mt-1 text-[11px] leading-4 whitespace-normal" style="color:var(--text-3)">...</div>
+          </div>
+          <button id="logout-btn" type="button"
+            class="px-3 py-1.5 rounded-lg border text-xs whitespace-nowrap font-medium transition-all hover:border-primary-500/40"
+            style="border-color:var(--border);color:var(--text-2)">
+            Sign out
+          </button>
+        </div>
+
+        <!-- Chat messages -->
+        <div id="chat-box" class="p-3 md:p-6 space-y-6 overflow-y-auto flex-1 min-h-0">
+          <div id="empty-state" data-empty-state="1"
+            class="flex flex-col items-center justify-center h-full select-none">
+            <div class="relative mb-6">
+              <div class="absolute -inset-4 rounded-full blur-2xl opacity-20" style="background:var(--primary)"></div>
+              <div class="relative p-6 rounded-full border" style="background:var(--surface);border-color:var(--border)">
+                <i data-lucide="sparkles" class="w-10 h-10" style="color:var(--primary)"></i>
+              </div>
+            </div>
+            <h2 class="text-xl font-semibold mb-2" style="color:var(--text)">How can I help today?</h2>
+            <p class="text-sm text-center max-w-sm" style="color:var(--text-3)">
+              Ask me anything. I can help with coding, math, writing, analysis, and more.
+            </p>
+          </div>
+        </div>
+
+        <!-- Composer area -->
+        <div class="p-3 md:p-4 shrink-0 border-t" style="border-color:var(--border);background:linear-gradient(to top, var(--chat-bg), var(--chat-bg))">
+          <div class="max-w-4xl mx-auto relative">
+
+            <!-- File preview -->
+            <div id="file-preview"
+              class="hidden absolute -top-16 left-0 right-0 mx-2 p-3 border rounded-xl fade-in min-w-0"
+              style="background:var(--surface);border-color:var(--border);box-shadow:var(--shadow-lg)">
+              <div class="flex items-center gap-2 min-w-0">
+                <i data-lucide="paperclip" class="w-4 h-4 shrink-0" style="color:var(--primary)"></i>
+                <div id="file-chips" class="flex flex-wrap gap-2 min-w-0 flex-1"></div>
+                <button type="button" id="clear-files"
+                  class="shrink-0 p-1.5 hover:bg-red-500/10 rounded-full transition" style="color:var(--text-3)"
+                  title="Clear attachments" aria-label="Clear attachments">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quote preview -->
+            <div id="quote-preview"
+              class="hidden mb-2 px-3 py-2 rounded-xl border text-xs"
+              style="border-color:rgba(99,102,241,0.2);background:rgba(99,102,241,0.05)">
+              <div class="flex items-start gap-2">
+                <div class="flex-1 min-w-0">
+                  <div class="text-[10px] uppercase tracking-wide font-bold" style="color:var(--primary)">Asking about</div>
+                  <div id="quote-text" class="mt-1 line-clamp-3" style="color:var(--text)"></div>
+                </div>
+                <button id="quote-clear" type="button"
+                  class="shrink-0 p-1 rounded-full hover:bg-primary-500/10" style="color:var(--text-3)" aria-label="Clear selected text">
+                  <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Input composer -->
+            <div id="composer" class="flex items-end gap-2">
+              <input type="file" id="file-in" class="hidden" multiple>
+              <button id="attach-btn" onclick="document.getElementById('file-in').click()"
+                class="p-2 rounded-xl transition hover:bg-primary-500/10"
+                style="color:var(--text-3)" type="button">
+                <i data-lucide="paperclip" class="w-4 h-4"></i>
+              </button>
+
+              <textarea id="user-in" rows="1"
+                class="flex-1 bg-transparent p-2 outline-none resize-none max-h-40 text-sm placeholder-slate-400 dark:placeholder-slate-500"
+                placeholder="Type your message..."
+                style="color:var(--text)"
+                oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"></textarea>
+
+              <button id="send-btn" onclick="send()"
+                class="flex items-center justify-center group" type="button">
+                <i data-lucide="arrow-up" class="w-4 h-4 group-hover:-translate-y-0.5 transition-transform"></i>
+              </button>
+            </div>
+
+            <p class="text-[10px] text-center mt-2 font-medium uppercase tracking-widest hidden lg:block" style="color:var(--text-3);opacity:0.5">
+              Open Chat • Built for everyone
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Project settings modal -->
+  <div id="project-settings-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 backdrop-blur-sm z-30">
+    <div class="rounded-2xl p-6 w-full max-w-lg" style="background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-lg)">
+      <div class="flex items-center justify-between mb-4">
+        <div class="text-sm font-semibold" style="color:var(--text)">Project settings</div>
+        <button id="project-settings-close" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800" type="button" aria-label="Close project settings">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="space-y-3">
+        <input id="project-settings-name" type="text" placeholder="Project name"
+          class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
+          style="border-color:var(--border);background:var(--surface);color:var(--text)">
+        <textarea id="project-settings-description" placeholder="Project description"
+          class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
+          style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="2"></textarea>
+        <textarea id="project-settings-instructions" placeholder="Project instructions"
+          class="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500/30"
+          style="border-color:var(--border);background:var(--surface);color:var(--text)" rows="3"></textarea>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-2 mt-4">
+        <button id="project-settings-delete" type="button"
+          class="px-4 py-2 rounded-xl border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-medium">
+          Delete project
+        </button>
+        <div class="flex items-center gap-2">
+          <button id="project-settings-cancel" type="button"
+            class="px-4 py-2 rounded-xl border text-sm" style="border-color:var(--border);color:var(--text-2)">Cancel</button>
+          <button id="project-settings-save" type="button"
+            class="px-4 py-2 rounded-xl text-white text-sm font-medium" style="background:var(--primary)">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
