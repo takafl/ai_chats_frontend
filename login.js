@@ -16,22 +16,25 @@ function apiUrl(path) {
 }
 
 function setError(msg) {
-  const el = document.getElementById("err");
-  if (!el) return;
   const m = String(msg || "").trim() || "Unable to sign in.";
-  el.textContent = m;
-  el.classList.remove("hidden");
+  if (window.toast) {
+    window.toast.error(m, 5000);
+  } else {
+    alert(m);
+  }
 }
 
 function clearError() {
-  const el = document.getElementById("err");
-  if (el) el.classList.add("hidden");
+  // Not needed with toast notifications
 }
 
 function showFieldError(fieldId, msg) {
   const input = document.getElementById(fieldId);
   const error = document.getElementById(`${fieldId}-error`);
-  if (input) input.classList.add("is-invalid");
+  if (input) {
+    input.classList.add("is-invalid");
+    input.classList.remove("is-valid");
+  }
   if (error) {
     error.textContent = msg;
     error.classList.add("show");
@@ -41,8 +44,20 @@ function showFieldError(fieldId, msg) {
 function clearFieldError(fieldId) {
   const input = document.getElementById(fieldId);
   const error = document.getElementById(`${fieldId}-error`);
-  if (input) input.classList.remove("is-invalid");
-  if (error) error.classList.remove("show");
+  if (input) {
+    input.classList.remove("is-invalid");
+  }
+  if (error) {
+    error.classList.remove("show");
+  }
+}
+
+function showFieldSuccess(fieldId) {
+  const input = document.getElementById(fieldId);
+  if (input) {
+    input.classList.add("is-valid");
+    input.classList.remove("is-invalid");
+  }
 }
 
 function validateUsername(value) {
@@ -102,24 +117,34 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Client-side validation
     let hasErrors = false;
-    
+
     const usernameErr = validateUsername(username);
     if (usernameErr) {
       showFieldError("username", usernameErr);
       hasErrors = true;
+    } else {
+      showFieldSuccess("username");
     }
 
     const passwordErr = validatePassword(password);
     if (passwordErr) {
       showFieldError("password", passwordErr);
       hasErrors = true;
+    } else {
+      showFieldSuccess("password");
     }
 
-    if (hasErrors) return;
+    if (hasErrors) {
+      if (window.toast) {
+        window.toast.warning("Please correct the errors before submitting.", 4000);
+      }
+      return;
+    }
 
     try {
       if (btn) {
         btn.disabled = true;
+        btn.classList.add("btn-loading");
         btn.textContent = "Signing in...";
       }
 
@@ -141,13 +166,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!token) throw new Error("No authentication token received.");
 
       localStorage.setItem(AUTH_TOKEN_KEY, token);
-      redirectToApp();
+
+      if (window.toast) {
+        window.toast.success("Signed in successfully! Redirecting...", 2000);
+      }
+
+      setTimeout(() => {
+        redirectToApp();
+      }, 800);
     } catch (err) {
       console.error(err);
-      setError(err?.message || "Unable to sign in. Make sure the server is running.");
+      const errorMsg = err?.message || "Unable to sign in. Please check your credentials and ensure the server is running.";
+      setError(errorMsg);
     } finally {
       if (btn) {
         btn.disabled = false;
+        btn.classList.remove("btn-loading");
         btn.textContent = "Sign in";
       }
     }

@@ -179,13 +179,21 @@ function handleFileSelect(e) {
   const maxSize = 10 * 1024 * 1024; // 10MB
   const invalidFiles = files.filter(f => f.size > maxSize);
   if (invalidFiles.length) {
-    alert("File too large. Maximum size is 10MB.");
+    if (window.toast) {
+      window.toast.error(`File "${invalidFiles[0].name}" exceeds maximum size of 10MB.`, 5000);
+    } else {
+      alert("File too large. Maximum size is 10MB.");
+    }
     return;
   }
 
   selectedFiles = [...selectedFiles, ...files];
   renderFileChips();
   e.target.value = "";
+
+  if (window.toast && files.length > 0) {
+    window.toast.success(`${files.length} file(s) attached successfully.`, 3000);
+  }
 }
 
 function renderFileChips() {
@@ -252,14 +260,24 @@ async function send() {
   const error = validateMessage(text);
 
   if (error) {
-    alert(error);
+    if (window.toast) {
+      window.toast.warning(error, 4000);
+    } else {
+      alert(error);
+    }
+    userIn?.focus();
     return;
   }
 
   const modelSelect = document.getElementById("model-select");
   const model = modelSelect?.value;
   if (!model) {
-    alert("Please select a model first.");
+    if (window.toast) {
+      window.toast.warning("Please select a model first.", 4000);
+    } else {
+      alert("Please select a model first.");
+    }
+    modelSelect?.focus();
     return;
   }
 
@@ -346,9 +364,17 @@ async function send() {
   } catch (err) {
     if (err.name === "AbortError") {
       console.log("Request aborted");
+      if (window.toast) {
+        window.toast.info("Message sending was stopped.", 3000);
+      }
     } else {
       console.error("Send error:", err);
-      alert(err.message || "Failed to send message.");
+      const errorMessage = err.message || "Failed to send message.";
+      if (window.toast) {
+        window.toast.error(errorMessage, 5000);
+      } else {
+        alert(errorMessage);
+      }
     }
   } finally {
     isStreaming = false;
@@ -615,11 +641,21 @@ function createProject() {
 
   const name = nameEl?.value?.trim() || "";
   if (!name) {
-    alert("Project name is required.");
+    if (window.toast) {
+      window.toast.warning("Project name is required.", 4000);
+    } else {
+      alert("Project name is required.");
+    }
+    nameEl?.focus();
     return;
   }
   if (name.length < 2) {
-    alert("Project name must be at least 2 characters.");
+    if (window.toast) {
+      window.toast.warning("Project name must be at least 2 characters.", 4000);
+    } else {
+      alert("Project name must be at least 2 characters.");
+    }
+    nameEl?.focus();
     return;
   }
 
@@ -638,6 +674,11 @@ function createProject() {
 
   currentProjectId = project.id;
   document.getElementById("current-project-name").textContent = project.name;
+
+  if (window.toast) {
+    window.toast.success(`Project "${project.name}" created successfully.`, 3000);
+  }
+
   newChat();
 }
 
@@ -737,14 +778,25 @@ function closeProjectSettings() {
 }
 
 function saveProjectSettings() {
-  const name = document.getElementById("project-settings-name")?.value?.trim() || "";
+  const nameEl = document.getElementById("project-settings-name");
+  const name = nameEl?.value?.trim() || "";
 
   if (!name) {
-    alert("Project name is required.");
+    if (window.toast) {
+      window.toast.warning("Project name is required.", 4000);
+    } else {
+      alert("Project name is required.");
+    }
+    nameEl?.focus();
     return;
   }
   if (name.length < 2) {
-    alert("Project name must be at least 2 characters.");
+    if (window.toast) {
+      window.toast.warning("Project name must be at least 2 characters.", 4000);
+    } else {
+      alert("Project name must be at least 2 characters.");
+    }
+    nameEl?.focus();
     return;
   }
 
@@ -759,6 +811,10 @@ function saveProjectSettings() {
     if (currentProjectId === editingProjectId) {
       document.getElementById("current-project-name").textContent = name;
     }
+
+    if (window.toast) {
+      window.toast.success("Project settings updated successfully.", 3000);
+    }
   }
 
   closeProjectSettings();
@@ -767,12 +823,19 @@ function saveProjectSettings() {
 function deleteProject() {
   if (!confirm("Delete this project? Associated chats will remain.")) return;
 
+  const project = projects.find(p => p.id === editingProjectId);
+  const projectName = project?.name || "Project";
+
   projects = projects.filter(p => p.id !== editingProjectId);
   saveProjects();
 
   if (currentProjectId === editingProjectId) {
     currentProjectId = null;
     document.getElementById("current-project-name").textContent = "No project selected";
+  }
+
+  if (window.toast) {
+    window.toast.success(`"${projectName}" deleted successfully.`, 3000);
   }
 
   renderProjectList();

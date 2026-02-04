@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Open Chat | Smart Conversations</title>
+  <title>Open Chat | Professional AI Conversations</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
 
   <!-- ⚡ Preload critical resources -->
@@ -39,7 +39,10 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="style.css?v=6000">
+  <link rel="stylesheet" href="style.css?v=6001">
+
+  <!-- Toast Notification System -->
+  <script src="toast.js?v=6001"></script>
 
   <script>
     tailwind.config = {
@@ -61,7 +64,7 @@
 
 <!-- Theme toggle component -->
 <theme-toggle></theme-toggle>
-<script src="components/theme-toggle.js?v=6000"></script>
+<script src="components/theme-toggle.js?v=6001"></script>
 
 <body class="selection:bg-primary-500/20">
 
@@ -230,9 +233,9 @@
                 <i data-lucide="sparkles" class="w-10 h-10" style="color:var(--primary)"></i>
               </div>
             </div>
-            <h2 class="text-xl font-semibold mb-2" style="color:var(--text)">How can I help today?</h2>
+            <h2 class="text-xl font-semibold mb-2" style="color:var(--text)">How can I assist you today?</h2>
             <p class="text-sm text-center max-w-sm" style="color:var(--text-3)">
-              Ask me anything. I can help with coding, math, writing, analysis, and more.
+              Start a conversation. I can help with coding, analysis, writing, problem-solving, and much more.
             </p>
           </div>
         </div>
@@ -294,7 +297,7 @@
             </div>
 
             <p class="text-[10px] text-center mt-2 font-medium uppercase tracking-widest hidden lg:block" style="color:var(--text-3);opacity:0.5">
-              Open Chat • Built for everyone
+              Open Chat • Professional AI Assistant
             </p>
           </div>
         </div>
