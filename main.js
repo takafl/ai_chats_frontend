@@ -13,6 +13,21 @@ const AUTH_TOKEN_KEY = "auth_token";
 const CHATS_KEY = "chat_history";
 const PROJECTS_KEY = "projects";
 
+// Validation constants
+const VALIDATION = {
+  MESSAGE_MAX_LENGTH: 50000,
+  PROJECT_NAME_MIN: 2,
+  PROJECT_NAME_MAX: 100,
+  FILE_MAX_SIZE: 10 * 1024 * 1024, // 10MB
+  ALLOWED_FILE_TYPES: [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'text/plain', 'text/csv', 'text/markdown',
+    'application/pdf', 'application/json',
+    'application/javascript', 'text/javascript',
+    'text/html', 'text/css'
+  ]
+};
+
 // ============================================================
 // API Helpers
 // ============================================================
@@ -39,7 +54,7 @@ async function apiFetch(path, options) {
   });
   if (res.status === 401) {
     logout();
-    throw new Error("Unauthorized");
+    throw new Error("Session expired. Please sign in again.");
   }
   return res;
 }
@@ -63,6 +78,27 @@ function formatNumber(n) {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
   if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
   return String(n);
+}
+
+function formatFileSize(bytes) {
+  if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  if (bytes >= 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return bytes + " bytes";
+}
+
+// ============================================================
+// Toast Helper
+// ============================================================
+function showToast(message, type = 'info', duration) {
+  if (window.toast) {
+    switch (type) {
+      case 'success': return window.toast.success(message, duration);
+      case 'error': return window.toast.error(message, duration);
+      case 'warning': return window.toast.warning(message, duration);
+      default: return window.toast.info(message, duration);
+    }
+  }
+  alert(message);
 }
 
 // ============================================================
@@ -106,6 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderProjectList();
   } catch (err) {
     console.error("Init error:", err);
+    showToast("Failed to initialize application. Please refresh.", "error");
   }
 
   window.lucide?.createIcons?.();
@@ -172,28 +209,48 @@ function initComposer() {
   });
 }
 
+// ============================================================
+// File Validation & Handling
+// ============================================================
+function validateFile(file) {
+  const errors = [];
+
+  if (file.size > VALIDATION.FILE_MAX_SIZE) {
+    errors.push(`File "${file.name}" exceeds maximum size of ${formatFileSize(VALIDATION.FILE_MAX_SIZE)}.`);
+  }
+
+  // Note: File type validation is optional - uncomment if needed
+  // if (!VALIDATION.ALLOWED_FILE_TYPES.includes(file.type)) {
+  //   errors.push(`File type "${file.type || 'unknown'}" is not supported.`);
+  // }
+
+  return errors;
+}
+
 function handleFileSelect(e) {
   const files = Array.from(e.target.files || []);
   if (!files.length) return;
 
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  const invalidFiles = files.filter(f => f.size > maxSize);
-  if (invalidFiles.length) {
-    if (window.toast) {
-      window.toast.error(`File "${invalidFiles[0].name}" exceeds maximum size of 10MB.`, 5000);
+  let hasErrors = false;
+  const validFiles = [];
+
+  for (const file of files) {
+    const errors = validateFile(file);
+    if (errors.length > 0) {
+      hasErrors = true;
+      errors.forEach(err => showToast(err, "error"));
     } else {
-      alert("File too large. Maximum size is 10MB.");
+      validFiles.push(file);
     }
-    return;
   }
 
-  selectedFiles = [...selectedFiles, ...files];
-  renderFileChips();
+  if (validFiles.length > 0) {
+    selectedFiles = [...selectedFiles, ...validFiles];
+    renderFileChips();
+    showToast(`${validFiles.length} file(s) attached successfully.`, "success", 3000);
+  }
+
   e.target.value = "";
-
-  if (window.toast && files.length > 0) {
-    window.toast.success(`${files.length} file(s) attached successfully.`, 3000);
-  }
 }
 
 function renderFileChips() {
@@ -208,10 +265,11 @@ function renderFileChips() {
   preview?.classList.remove("hidden");
   if (chips) {
     chips.innerHTML = selectedFiles.map((f, i) => `
-      <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs" style="background:var(--surface-3);color:var(--text-2)">
-        <i data-lucide="file" class="w-3 h-3"></i>
-        <span class="truncate max-w-[100px]">${escapeHtml(f.name)}</span>
-        <button type="button" onclick="removeFile(${i})" class="hover:text-red-500">
+      <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all hover:bg-primary-500/10" style="background:var(--surface-3);color:var(--text-2)">
+        <i data-lucide="file" class="w-3.5 h-3.5" style="color:var(--primary)"></i>
+        <span class="truncate max-w-[100px] font-medium">${escapeHtml(f.name)}</span>
+        <span class="text-[10px]" style="color:var(--text-3)">${formatFileSize(f.size)}</span>
+        <button type="button" onclick="removeFile(${i})" class="ml-1 p-0.5 rounded hover:bg-red-500/20 transition-colors" style="color:var(--text-3)" title="Remove file">
           <i data-lucide="x" class="w-3 h-3"></i>
         </button>
       </div>
@@ -221,13 +279,20 @@ function renderFileChips() {
 }
 
 window.removeFile = function(index) {
-  selectedFiles.splice(index, 1);
+  const removed = selectedFiles.splice(index, 1);
   renderFileChips();
+  if (removed.length) {
+    showToast(`"${removed[0].name}" removed.`, "info", 2000);
+  }
 };
 
 function clearFiles() {
-  selectedFiles = [];
-  renderFileChips();
+  if (selectedFiles.length > 0) {
+    const count = selectedFiles.length;
+    selectedFiles = [];
+    renderFileChips();
+    showToast(`${count} file(s) cleared.`, "info", 2000);
+  }
 }
 
 function clearQuote() {
@@ -236,19 +301,31 @@ function clearQuote() {
 }
 
 // ============================================================
-// Send Message
+// Message Validation
 // ============================================================
 function validateMessage(text) {
   const trimmed = text.trim();
+
   if (!trimmed && !selectedFiles.length) {
-    return "Please enter a message or attach a file.";
+    return {
+      valid: false,
+      message: "Please enter a message or attach a file."
+    };
   }
-  if (trimmed.length > 50000) {
-    return "Message is too long (max 50,000 characters).";
+
+  if (trimmed.length > VALIDATION.MESSAGE_MAX_LENGTH) {
+    return {
+      valid: false,
+      message: `Message is too long. Maximum ${formatNumber(VALIDATION.MESSAGE_MAX_LENGTH)} characters allowed. Current: ${formatNumber(trimmed.length)}.`
+    };
   }
-  return null;
+
+  return { valid: true };
 }
 
+// ============================================================
+// Send Message
+// ============================================================
 async function send() {
   if (isStreaming) {
     stopStreaming();
@@ -257,26 +334,19 @@ async function send() {
 
   const userIn = document.getElementById("user-in");
   const text = userIn?.value || "";
-  const error = validateMessage(text);
+  const validation = validateMessage(text);
 
-  if (error) {
-    if (window.toast) {
-      window.toast.warning(error, 4000);
-    } else {
-      alert(error);
-    }
+  if (!validation.valid) {
+    showToast(validation.message, "warning");
     userIn?.focus();
     return;
   }
 
   const modelSelect = document.getElementById("model-select");
   const model = modelSelect?.value;
+
   if (!model) {
-    if (window.toast) {
-      window.toast.warning("Please select a model first.", 4000);
-    } else {
-      alert("Please select a model first.");
-    }
+    showToast("Please select a model before sending.", "warning");
     modelSelect?.focus();
     return;
   }
@@ -327,7 +397,8 @@ async function send() {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new Error(data?.error || `HTTP ${res.status}`);
+      const errorMsg = data?.error || `Server error (${res.status})`;
+      throw new Error(errorMsg);
     }
 
     const reader = res.body?.getReader();
@@ -363,18 +434,10 @@ async function send() {
 
   } catch (err) {
     if (err.name === "AbortError") {
-      console.log("Request aborted");
-      if (window.toast) {
-        window.toast.info("Message sending was stopped.", 3000);
-      }
+      showToast("Message sending was stopped.", "info", 3000);
     } else {
       console.error("Send error:", err);
-      const errorMessage = err.message || "Failed to send message.";
-      if (window.toast) {
-        window.toast.error(errorMessage, 5000);
-      } else {
-        alert(errorMessage);
-      }
+      showToast(err.message || "Failed to send message. Please try again.", "error");
     }
   } finally {
     isStreaming = false;
@@ -388,6 +451,7 @@ function stopStreaming() {
   abortController?.abort();
   isStreaming = false;
   updateSendButton();
+  showToast("Response generation stopped.", "info", 2000);
 }
 
 function updateSendButton() {
@@ -412,7 +476,7 @@ function appendMessage(role, content, id) {
   if (!chatBox) return;
 
   const row = document.createElement("div");
-  row.className = "msg-row";
+  row.className = "msg-row fade-in";
   if (id) row.id = id;
 
   const avatarClass = role === "user" ? "msg-avatar-user" : "msg-avatar-bot";
@@ -468,9 +532,17 @@ function highlightCode() {
       btn.className = "copy-btn";
       btn.textContent = "Copy";
       btn.onclick = () => {
-        navigator.clipboard.writeText(block.textContent || "");
-        btn.textContent = "Copied!";
-        setTimeout(() => { btn.textContent = "Copy"; }, 2000);
+        navigator.clipboard.writeText(block.textContent || "").then(() => {
+          btn.textContent = "Copied!";
+          btn.classList.add("copied");
+          showToast("Code copied to clipboard.", "success", 2000);
+          setTimeout(() => {
+            btn.textContent = "Copy";
+            btn.classList.remove("copied");
+          }, 2000);
+        }).catch(() => {
+          showToast("Failed to copy code.", "error");
+        });
       };
       pre.appendChild(btn);
     }
@@ -557,6 +629,9 @@ function loadChat(chatId) {
 }
 
 function deleteChat(chatId) {
+  const chat = chats.find(c => c.id === chatId);
+  const chatTitle = chat?.title || "Conversation";
+
   chats = chats.filter(c => c.id !== chatId);
   localStorage.setItem(CHATS_KEY, JSON.stringify(chats));
 
@@ -564,13 +639,22 @@ function deleteChat(chatId) {
     newChat();
   }
   renderChatList();
+  showToast(`"${chatTitle}" deleted.`, "success", 3000);
 }
 
 function clearHistory() {
+  if (chats.length === 0) {
+    showToast("No chat history to clear.", "info");
+    return;
+  }
+
   if (!confirm("Delete all chat history? This cannot be undone.")) return;
+
+  const count = chats.length;
   chats = [];
   localStorage.setItem(CHATS_KEY, JSON.stringify(chats));
   newChat();
+  showToast(`${count} conversation(s) deleted.`, "success");
 }
 
 function renderChatList() {
@@ -587,11 +671,11 @@ function renderChatList() {
   }
 
   chatList.innerHTML = filteredChats.map(chat => `
-    <div class="p-2.5 rounded-xl cursor-pointer text-sm hover:bg-primary-500/8 border border-transparent hover:border-primary-500/15 flex items-center gap-2.5 transition-all duration-200 ${chat.id === currentChatId ? 'bg-primary-500/10 border-primary-500/20' : ''}" 
+    <div class="p-2.5 rounded-xl cursor-pointer text-sm hover:bg-primary-500/8 border border-transparent hover:border-primary-500/15 flex items-center gap-2.5 transition-all duration-200 ${chat.id === currentChatId ? 'bg-primary-500/10 border-primary-500/20' : ''}"
          style="color:var(--text-2)" data-chat-id="${chat.id}">
       <i data-lucide="message-square" class="w-4 h-4 shrink-0" style="color:var(--text-3)"></i>
       <span class="truncate flex-1">${escapeHtml(chat.title)}</span>
-      <button class="p-1 rounded hover:bg-red-500/10 delete-chat shrink-0" data-id="${chat.id}" style="color:var(--text-3)">
+      <button class="p-1 rounded hover:bg-red-500/10 delete-chat shrink-0 transition-colors" data-id="${chat.id}" style="color:var(--text-3)" title="Delete conversation">
         <i data-lucide="trash-2" class="w-3 h-3"></i>
       </button>
     </div>
@@ -634,27 +718,40 @@ function hideProjectForm() {
   document.getElementById("project-instructions-input").value = "";
 }
 
+function validateProjectName(name) {
+  const trimmed = name.trim();
+
+  if (!trimmed) {
+    return { valid: false, message: "Project name is required." };
+  }
+
+  if (trimmed.length < VALIDATION.PROJECT_NAME_MIN) {
+    return { valid: false, message: `Project name must be at least ${VALIDATION.PROJECT_NAME_MIN} characters.` };
+  }
+
+  if (trimmed.length > VALIDATION.PROJECT_NAME_MAX) {
+    return { valid: false, message: `Project name must not exceed ${VALIDATION.PROJECT_NAME_MAX} characters.` };
+  }
+
+  // Check for duplicate names
+  const duplicate = projects.find(p => p.name.toLowerCase() === trimmed.toLowerCase());
+  if (duplicate) {
+    return { valid: false, message: "A project with this name already exists." };
+  }
+
+  return { valid: true };
+}
+
 function createProject() {
   const nameEl = document.getElementById("project-name-input");
   const descEl = document.getElementById("project-description-input");
   const instEl = document.getElementById("project-instructions-input");
 
   const name = nameEl?.value?.trim() || "";
-  if (!name) {
-    if (window.toast) {
-      window.toast.warning("Project name is required.", 4000);
-    } else {
-      alert("Project name is required.");
-    }
-    nameEl?.focus();
-    return;
-  }
-  if (name.length < 2) {
-    if (window.toast) {
-      window.toast.warning("Project name must be at least 2 characters.", 4000);
-    } else {
-      alert("Project name must be at least 2 characters.");
-    }
+  const validation = validateProjectName(name);
+
+  if (!validation.valid) {
+    showToast(validation.message, "warning");
     nameEl?.focus();
     return;
   }
@@ -675,10 +772,7 @@ function createProject() {
   currentProjectId = project.id;
   document.getElementById("current-project-name").textContent = project.name;
 
-  if (window.toast) {
-    window.toast.success(`Project "${project.name}" created successfully.`, 3000);
-  }
-
+  showToast(`Project "${project.name}" created successfully.`, "success");
   newChat();
 }
 
@@ -708,7 +802,7 @@ function renderProjectList() {
          style="color:var(--text-2)" data-project-id="${p.id}">
       <i data-lucide="folder" class="w-4 h-4 shrink-0" style="color:var(--text-3)"></i>
       <span class="truncate flex-1">${escapeHtml(p.name)}</span>
-      <button class="p-1 rounded hover:bg-primary-500/10 edit-project shrink-0" data-id="${p.id}" style="color:var(--text-3)">
+      <button class="p-1 rounded hover:bg-primary-500/10 edit-project shrink-0 transition-colors" data-id="${p.id}" style="color:var(--text-3)" title="Project settings">
         <i data-lucide="settings" class="w-3 h-3"></i>
       </button>
     </div>
@@ -782,20 +876,21 @@ function saveProjectSettings() {
   const name = nameEl?.value?.trim() || "";
 
   if (!name) {
-    if (window.toast) {
-      window.toast.warning("Project name is required.", 4000);
-    } else {
-      alert("Project name is required.");
-    }
+    showToast("Project name is required.", "warning");
     nameEl?.focus();
     return;
   }
-  if (name.length < 2) {
-    if (window.toast) {
-      window.toast.warning("Project name must be at least 2 characters.", 4000);
-    } else {
-      alert("Project name must be at least 2 characters.");
-    }
+
+  if (name.length < VALIDATION.PROJECT_NAME_MIN) {
+    showToast(`Project name must be at least ${VALIDATION.PROJECT_NAME_MIN} characters.`, "warning");
+    nameEl?.focus();
+    return;
+  }
+
+  // Check for duplicate names (excluding current project)
+  const duplicate = projects.find(p => p.id !== editingProjectId && p.name.toLowerCase() === name.toLowerCase());
+  if (duplicate) {
+    showToast("A project with this name already exists.", "warning");
     nameEl?.focus();
     return;
   }
@@ -812,19 +907,17 @@ function saveProjectSettings() {
       document.getElementById("current-project-name").textContent = name;
     }
 
-    if (window.toast) {
-      window.toast.success("Project settings updated successfully.", 3000);
-    }
+    showToast("Project settings updated.", "success");
   }
 
   closeProjectSettings();
 }
 
 function deleteProject() {
-  if (!confirm("Delete this project? Associated chats will remain.")) return;
-
   const project = projects.find(p => p.id === editingProjectId);
   const projectName = project?.name || "Project";
+
+  if (!confirm(`Delete "${projectName}"? Associated chats will remain.`)) return;
 
   projects = projects.filter(p => p.id !== editingProjectId);
   saveProjects();
@@ -834,10 +927,7 @@ function deleteProject() {
     document.getElementById("current-project-name").textContent = "No project selected";
   }
 
-  if (window.toast) {
-    window.toast.success(`"${projectName}" deleted successfully.`, 3000);
-  }
-
+  showToast(`"${projectName}" deleted.`, "success");
   renderProjectList();
   closeProjectSettings();
 }
@@ -864,11 +954,13 @@ async function loadMe() {
     const quotaFill = document.getElementById("quota-fill");
     if (quotaFill) {
       quotaFill.style.width = `${percent}%`;
-      quotaFill.style.background = percent > 90
-        ? "var(--error, #e53e3e)"
-        : percent > 70
-          ? "var(--warning, #ed8936)"
-          : "linear-gradient(90deg, var(--primary, #5c7c6f), var(--primary-light, #7a9a8d))";
+      if (percent > 90) {
+        quotaFill.style.background = "var(--error)";
+      } else if (percent > 70) {
+        quotaFill.style.background = "var(--warning)";
+      } else {
+        quotaFill.style.background = "linear-gradient(90deg, var(--primary), var(--primary-light))";
+      }
     }
 
     const quotaText = document.getElementById("quota-text");
@@ -876,6 +968,13 @@ async function loadMe() {
       quotaText.textContent = limit > 0
         ? `${formatNumber(used)} / ${formatNumber(limit)} tokens used`
         : `${formatNumber(used)} tokens used`;
+    }
+
+    // Warn user if quota is low
+    if (percent > 90 && percent < 100) {
+      showToast("You have used over 90% of your monthly token quota.", "warning");
+    } else if (percent >= 100) {
+      showToast("You have reached your monthly token quota limit.", "error");
     }
   } catch (err) {
     console.error("loadMe error:", err);
@@ -900,13 +999,15 @@ async function loadModels() {
 
       if (!models.length) {
         modelSelect.innerHTML = '<option value="">No models available</option>';
+        showToast("No AI models available. Please contact administrator.", "warning");
       }
     }
   } catch (err) {
     console.error("loadModels error:", err);
     if (modelSelect) {
-      modelSelect.innerHTML = '<option value="">Error loading models</option>';
+      modelSelect.innerHTML = '<option value="">Failed to load models</option>';
     }
+    showToast("Failed to load AI models. Please refresh the page.", "error");
   }
 }
 
